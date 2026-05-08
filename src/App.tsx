@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
-import { Play, Pause, Search, Trash2, Disc3, Lock, LogOut, FileAudio, Image as ImageIcon, CheckCircle2, ChevronRight, Volume2, ArrowLeft, Instagram, Twitter, Youtube } from 'lucide-react';
+import { Play, Pause, Search, Trash2, Disc3, Lock, LogOut, FileAudio, Image as ImageIcon, CheckCircle2, ChevronRight, Volume2, ArrowLeft, Instagram, Twitter, Youtube, MessageCircle, Send, X } from 'lucide-react';
 
 // ==========================================
 // 1. INTERFACES & SUPABASE CONFIG
@@ -68,6 +68,9 @@ export default function App() {
             <div className="w-1/3 flex justify-end text-zinc-600"><Volume2 size={18} /></div>
           </div>
         )}
+
+        {/* FLOATING CHATBOT */}
+        <Chatbot />
       </div>
     </Router>
   );
@@ -376,5 +379,104 @@ function Dashboard({ onLogout, refresh, artists, releases }: any) {
          </form>
        )}
     </div>
+  );
+}
+
+// ==========================================
+// 6. CHATBOT COMPONENT (DOPEBOT)
+// ==========================================
+function Chatbot() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<{ text: string; isBot: boolean }[]>([
+    { text: "Halo! Gw DopeBot 🤖. Ada yang bisa dibantu soal Dope Stereo? (Ketik: demo, artis, atau rilis)", isBot: true }
+  ]);
+  const [inputText, setInputText] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isOpen]);
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+    const userMsg = inputText.toLowerCase();
+    setMessages(prev => [...prev, { text: inputText, isBot: false }]);
+    setInputText("");
+
+    setTimeout(() => {
+      let botReply = "Sori bro, gw kurang paham. Coba ketik 'demo', 'artis', 'rilis', atau sapa gw aja.";
+      
+      // --- LOGIKA BASA-BASI (SMALL TALK) ---
+      if (userMsg === "p" || userMsg === "ping") {
+        botReply = "Uy! Nggak usah di-ping bro, gw selalu standby. Ada yang bisa dibantu? 😎";
+      } else if (userMsg.includes("halo") || userMsg.includes("hai") || userMsg.includes("hi") || userMsg.includes("hello")) {
+        botReply = "Halo juga bro! 👋 Asik banget lu mampir ke portal kita. Ada yang mau ditanyain?";
+      } else if (userMsg.includes("kabar") || userMsg.includes("apa kabar")) {
+        botReply = "Kabar baik bro! Server Dope Stereo lagi aman sentosa. Lu sendiri gimana? 🔥";
+      } else if (userMsg.includes("siapa lu") || userMsg.includes("lu siapa")) {
+        botReply = "Gw DopeBot, asisten virtual Dope Stereo yang siap bantu lu eksplor karya-karya kita.";
+      } else if (userMsg.includes("keren") || userMsg.includes("mantap") || userMsg.includes("gila")) {
+        botReply = "Yoi dong, Dope Stereo gitu lho! Thanks bro apresiasinya 🚀";
+      } else if (userMsg.includes("makasih") || userMsg.includes("thanks") || userMsg.includes("oke") || userMsg.includes("ok")) {
+        botReply = "Sama-sama bro! Silakan lanjut jalan-jalan di web kita ya. 🎧";
+      } 
+      // --- LOGIKA UTAMA ---
+      else if (userMsg.includes("demo")) {
+        botReply = "Mau kirim demo track? Keren! Langsung email aja karya lu ke A&R kita: alex@dopestereo.com 🎧";
+      } else if (userMsg.includes("artis") || userMsg.includes("roster")) {
+        botReply = "Roster kita lagi on-fire! Cek langsung di menu 'The Roster' buat liat talent Dope Stereo.";
+      } else if (userMsg.includes("rilis") || userMsg.includes("lagu") || userMsg.includes("katalog")) {
+        botReply = "Semua master audio dan rilisan terbaru kita tersimpan rapi di E-Catalog. Cek aja langsung!";
+      }
+
+      setMessages(prev => [...prev, { text: botReply, isBot: true }]);
+    }, 1000);
+  };
+
+  return (
+    <>
+      <button 
+        onClick={() => setIsOpen(true)}
+        className={`fixed bottom-8 right-8 z-[100] w-14 h-14 bg-green-500 text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.4)] hover:scale-110 transition-all ${isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'}`}
+      >
+        <MessageCircle size={28} />
+      </button>
+
+      <div className={`fixed bottom-8 right-8 z-[100] w-80 bg-zinc-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 transform origin-bottom-right ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
+        <div className="bg-zinc-950 p-4 border-b border-white/5 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <h4 className="font-black uppercase tracking-widest text-[10px]">DopeBot Assistant</h4>
+          </div>
+          <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white transition-colors"><X size={16} /></button>
+        </div>
+
+        <div className="p-4 h-64 overflow-y-auto space-y-4 text-xs font-bold tracking-wide">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={`flex ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
+              <div className={`max-w-[80%] p-3 rounded-2xl ${msg.isBot ? 'bg-zinc-800 text-white rounded-tl-none' : 'bg-green-500 text-black rounded-tr-none'}`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <form onSubmit={handleSend} className="p-3 bg-zinc-950 border-t border-white/5 flex gap-2">
+          <input 
+            type="text" 
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Type your message..." 
+            className="flex-1 bg-zinc-900 border border-white/10 rounded-full px-4 py-2 text-[10px] outline-none focus:border-green-500 transition-colors"
+          />
+          <button type="submit" className="w-8 h-8 bg-green-500 text-black rounded-full flex items-center justify-center hover:bg-green-400 transition-colors">
+            <Send size={14} className="ml-0.5" />
+          </button>
+        </form>
+      </div>
+    </>
   );
 }
